@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  chat_now_mongodb:
+    container_name: chat_now_mongodb
+    image: mongo:latest
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${DATABASE_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${DATABASE_PASSWORD}
+      MONGO_INITDB_DATABASE: ${DATABASE_NAME}
+    ports:
+      - "27019:27017"  # Ánh xạ cổng 27019 trên máy host tới cổng 27017 trong container
+    volumes:
+      - ./mongo-data:/data/db  # Mount data ra ngoài để tránh dữ liệu bị xóa khi remove container
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    restart: unless-stopped
+
+networks:
+  default:
+    driver: bridge
