@@ -12,9 +12,10 @@ export class TransformInterceptor implements NestInterceptor {
     return next.handle().pipe(
       map((data) => {
         return {
-          status: 2000,
+          statusCode: 2000,
           message: 'Request successful',
           data,
+          timestamp: new Date().toISOString(),
         };
       }),
     );

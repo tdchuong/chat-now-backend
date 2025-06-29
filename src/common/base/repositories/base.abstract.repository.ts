@@ -8,6 +8,7 @@ import {
 } from 'mongoose';
 import { FindAllResponse } from '@common/types/conmon.type';
 import { BaseSchema } from '@common/base/schemas/mongo/base.schema';
+import { UserEntity } from '@modules/user/domain/entities/user.entity';
 
 // Thêm generic type cho schema (S)
 // và entity (T)
@@ -22,9 +23,9 @@ export abstract class BaseRepositoryAbstract<
   ) {}
 
   async create(dto: Partial<T>): Promise<T> {
-    console.log('dto>>>', dto);
     const document = new this.model(this.toDocument(dto as T));
-    console.log('document>>>', document);
+    console.log('Document to save:', document);
+    
     const saved = await this.model.create(document);
     return this.toEntity(saved);
   }
@@ -44,7 +45,14 @@ export abstract class BaseRepositoryAbstract<
     const document = await this.model
       .findOne({ ...condition, deletedAt: null }, projection)
       .exec();
-    return document ? this.toEntity(document) : null;
+    if (!document) {
+      return null;
+    }
+
+    console.log(' toEntity>>>>', this.toEntity(document));
+    
+    return this.toEntity(document);
+    // return document ? this.toEntity(document) : null;
   }
 
   async findAll(

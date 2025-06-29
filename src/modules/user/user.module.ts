@@ -6,14 +6,12 @@ import {
   UserSchema,
 } from '@modules/user/infrastructure/mongoose/schemas/user.schema';
 import { UserRepository } from '@modules/user/infrastructure/mongoose/repositories/user.repository';
-import { UserProfile } from '@modules/user/infrastructure/mappers/user.profile';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
   ],
   providers: [
-    UserProfile,
     {
       provide: 'IUserRepository',
       useClass: UserRepository,

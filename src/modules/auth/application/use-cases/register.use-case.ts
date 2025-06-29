@@ -23,7 +23,6 @@ export class RegisterUseCase implements IRegisterUseCase {
     if (existingUser) {
       throw new ConflictException('Email already existed!!');
     }
-
     const hashedPassword = await this.hashPassword(registerDto.password);
     
     const newUser = new UserEntity();
@@ -35,6 +34,8 @@ export class RegisterUseCase implements IRegisterUseCase {
     
 
     const user = await this.userRepository.create(newUser);
+    console.log('User created successfully:', user);
+    
     const payload = { sub: user.getId(), email: user.getEmail() };
     const accessToken = this.jwtService.sign(payload);
   }

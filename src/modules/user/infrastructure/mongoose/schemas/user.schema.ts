@@ -18,7 +18,6 @@ export class User extends BaseSchema {
 
   @Prop({
     required: true,
-    select: false,
   })
   password: string;
 

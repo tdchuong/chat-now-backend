@@ -5,4 +5,10 @@ export class BaseSchema {
 
   @Prop({ default: null })
   deletedAt: Date; // Dùng cho soft delete
+
+  @Prop({ default: Date.now })
+  createdAt: Date; // Ngày tạo bản ghi
+
+  @Prop({ default: Date.now })
+  updatedAt: Date; // Ngày cập nhật bản ghi
 }

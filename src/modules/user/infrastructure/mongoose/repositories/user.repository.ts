@@ -8,8 +8,7 @@ import {
 } from '@modules/user/infrastructure/mongoose/schemas/user.schema';
 import { UserEntity } from '@modules/user/domain/entities/user.entity';
 import { IUserRepository } from '@modules/user/domain/repositories/user.repository.interface';
-import { InjectMapper } from '@automapper/nestjs';
-import { Mapper } from '@automapper/core';
+import { UserMapper } from '@modules/user/infrastructure/mappers/user.mapper';
 
 @Injectable()
 export class UserRepository
@@ -19,13 +18,11 @@ export class UserRepository
   constructor(
     @InjectModel(User.name)
     private readonly userModel: Model<UserDocument>,
-
-    @InjectMapper() private readonly mapper: Mapper,
   ) {
     super(
       userModel,
-      (document: UserDocument) => this.mapper.map(document, User, UserEntity), // Ánh xạ từ User schema sang UserEntity
-      (entity: UserEntity) => this.mapper.map(entity, UserEntity, User), // Ánh xạ ngược từ UserEntity về User schema
+      (userDoc: UserDocument) => UserMapper.toDomain(userDoc), // Ánh xạ từ User schema sang UserEntity
+      (entity: UserEntity) => UserMapper.toPersistence(entity), // Ánh xạ ngược từ UserEntity về User schema
     );
   }
 }

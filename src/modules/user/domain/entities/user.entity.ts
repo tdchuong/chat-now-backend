@@ -130,6 +130,7 @@ export class UserEntity {
 
   // Setters
   setId(id: string): void {
+    if (!id.trim()) throw new Error('ID cannot be empty');
     this.id = id;
   }
 
