@@ -6,14 +6,13 @@ import {
   Injectable,
   NestInterceptor,
 } from '@nestjs/common';
-import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
+import { PinoLogger } from 'nestjs-pino';
 
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
-  constructor(
-    @InjectPinoLogger(LoggingInterceptor.name)
-    private readonly logger: PinoLogger,
-  ) {}
+  constructor(private readonly logger: PinoLogger) {
+    this.logger.setContext(LoggingInterceptor.name);
+  }
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const now = Date.now();
@@ -35,7 +34,7 @@ export class LoggingInterceptor implements NestInterceptor {
             method,
             url,
             error: err.message,
-            // stack: err.stack,
+            response: err.response,
           });
         },
       }),

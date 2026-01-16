@@ -1,13 +1,13 @@
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-
+import * as cookieParser from 'cookie-parser';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const logger = new Logger('Bootstrap');
 
   app.setGlobalPrefix(process.env.API_PREFIX || 'api/v1', {
-    exclude: ['/health', '/status'], // Loại trừ route không cần prefix
+    exclude: ['/health', '/status'],
   });
 
   app.enableCors({
@@ -23,10 +23,11 @@ async function bootstrap() {
       transform: true,
     }),
   );
+  app.use(cookieParser());
 
   await app.listen(process.env.PORT ?? 8080);
 
-  logger.log(`🚀🚀🚀 Backend API Base URL: http://localhost:3000/api/v1`);
+  logger.log(`🚀🚀🚀 Backend API Base URL: http://localhost:8080/api/v1`);
 }
 
 bootstrap();

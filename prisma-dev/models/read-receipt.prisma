@@ -1,0 +1,11 @@
+model ReadReceipt {
+    message_id String
+    user_id    String
+    read_at    DateTime @default(now())
+
+    message Message @relation(fields: [message_id], references: [id], onDelete: Cascade)
+    user    User    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+    @@unique([message_id, user_id])
+    @@map("read_receipts")
+}

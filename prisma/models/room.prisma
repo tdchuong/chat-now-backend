@@ -1,0 +1,24 @@
+enum RoomType {
+    PRIVATE
+    GROUP
+    VOICE_CHANNEL
+}
+
+model Room {
+    id         String   @id @default(uuid())
+    name       String?
+    type       RoomType @default(PRIVATE)
+    avatar_url String?
+    is_pinned  Boolean  @default(false)
+
+    created_at DateTime  @default(now())
+    updated_at DateTime  @updatedAt
+    deleted_at DateTime?
+
+    members  RoomMember[]
+    messages Message[]
+    typing   Typing[]
+
+    @@index([type])
+    @@map("rooms")
+}

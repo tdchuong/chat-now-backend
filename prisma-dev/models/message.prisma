@@ -1,0 +1,35 @@
+enum MessageType {
+    TEXT
+    IMAGE
+    VIDEO
+    FILE
+    VOICE
+}
+
+model Message {
+    id          String      @id @default(uuid())
+    room_id     String
+    sender_id   String
+    type        MessageType @default(TEXT)
+    content     String?     @db.Text
+    file_url    String? // nếu là ảnh, video, file
+    file_size   Int?
+    file_name   String?
+    duration    Int? // giây, cho voice/video
+    reply_to_id String?
+
+    is_deleted Boolean   @default(false)
+    created_at DateTime  @default(now())
+    edited_at  DateTime?
+
+    room      Room          @relation(fields: [room_id], references: [id], onDelete: Cascade)
+    sender    User          @relation("MessageSender", fields: [sender_id], references: [id])
+    reply_to  Message?      @relation("ReplyTo", fields: [reply_to_id], references: [id])
+    replies   Message[]     @relation("ReplyTo")
+    read_by   ReadReceipt[]
+    reactions Reaction[]
+
+    @@index([room_id, created_at])
+    @@index([sender_id])
+    @@map("messages")
+}

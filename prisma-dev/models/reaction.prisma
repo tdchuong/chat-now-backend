@@ -1,0 +1,20 @@
+enum ReactionType {
+    LIKE
+    LOVE
+    LAUGH
+    SAD
+    ANGRY
+}
+
+model Reaction {
+    message_id String
+    user_id    String
+    type       ReactionType
+    created_at DateTime     @default(now())
+
+    message Message @relation(fields: [message_id], references: [id], onDelete: Cascade)
+    user    User    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+    @@unique([message_id, user_id])
+    @@map("reactions")
+}

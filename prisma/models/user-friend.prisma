@@ -1,0 +1,23 @@
+enum UserFriendStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+model UserFriend {
+  user_id   String
+  friend_id String
+  status    UserFriendStatus @default(PENDING)
+
+  create_at  DateTime @default(now())
+  updated_at DateTime @updatedAt
+  message    String?  @db.Text
+
+  user   User @relation("UserFriends", fields: [user_id], references: [id])
+  friend User @relation("FriendedBy", fields: [friend_id], references: [id])
+
+  @@unique([user_id, friend_id])
+  @@index([user_id])
+  @@index([friend_id])
+  @@map("user_friends")
+}

@@ -18,17 +18,9 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "@modules/*": [
-        "src/modules/*"
-      ],
-      "@configs/*": [
-        "src/configs/*"
-      ],
-      "@repositories/*": [
-        "src/repositories/*"
-      ],
-       "@common/*": ["src/common/*"]  // Đảm bảo alias này đã được cấu hình
-
+      "@/*": ["src/*"],
+       "@common/*": ["src/common/*"],
     },
+    
   }
 }

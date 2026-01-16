@@ -1,0 +1,16 @@
+model UserFriend {
+  user_id      String
+  friend_id    String
+  status       String    @default("pending") // pending | accepted | declined
+  requested_at DateTime  @default(now())
+  responded_at DateTime?
+  message      String?   @db.Text
+
+  user   User @relation("UserFriends", fields: [user_id], references: [id])
+  friend User @relation("FriendedBy", fields: [friend_id], references: [id])
+
+  @@unique([user_id, friend_id])
+  @@index([user_id])
+  @@index([friend_id])
+  @@map("user_friends")
+}

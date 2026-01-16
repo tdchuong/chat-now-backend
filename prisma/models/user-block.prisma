@@ -1,0 +1,14 @@
+model Block {
+    blocker_id String
+    blocked_id String
+
+    status     Boolean  @default(true)
+    created_at DateTime @default(now())
+    updated_at DateTime @updatedAt
+
+    blocker User @relation("Blocker", fields: [blocker_id], references: [id])
+    blocked User @relation("Blocked", fields: [blocked_id], references: [id])
+
+    @@unique([blocker_id, blocked_id])
+    @@map("user_blocks")
+}

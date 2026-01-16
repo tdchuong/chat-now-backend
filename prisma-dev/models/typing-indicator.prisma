@@ -1,0 +1,14 @@
+// Đang gõ
+model Typing {
+    id         String   @id @default(uuid())
+    room_id    String
+    user_id    String
+    is_typing  Boolean  @default(true)
+    updated_at DateTime @updatedAt
+
+    room Room @relation(fields: [room_id], references: [id], onDelete: Cascade)
+    user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+    @@index([room_id])
+    @@map("typing_indicators")
+}

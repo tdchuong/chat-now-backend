@@ -1,0 +1,36 @@
+model UserDevice {
+    id String   @id @default(uuid())
+    // ← Khóa nhận diện thiết bị vĩnh viễn (SHA256 của fingerprint)
+    fingerprint_hash String @unique @db.VarChar(64) // ví dụ: "a1b2c3d4e5f6..."
+
+    user_id String? // null = chưa login lần nào (guest)
+    user    User?   @relation(fields: [user_id], references: [id], onDelete: SetNull)
+
+    // Thông tin thiết bị (để hiển thị danh sách thiết bị)
+    device_name     String? // "iPhone 14 Pro", "MacBook Pro", "Samsung Galaxy S23"
+    platform        String? // "iPhone", "Android", "Windows", "MacIntel"
+    os              String? // "iOS", "Android", "Windows", "macOS"
+    os_version      String? // "17.5", "14", "11"
+    browser         String? // "Chrome", "Safari", "Firefox"
+    browser_version String? // "128.0", "17.5"
+    app_version     String? // nếu là mobile app: "2.1.5"
+
+    // IP
+    ip_first   String? // IP lần đầu login
+    ip_last    String // IP lần cuối
+    user_agent String?
+
+    // Trạng thái bảo mật
+    is_trusted     Boolean  @default(false) // user bấm "Tin cậy thiết bị này"
+    is_blocked     Boolean  @default(false) // admin hoặc user tự block
+    last_active_at DateTime // để hiển thị "Hoạt động 5 phút trước"
+
+    // Thời gian
+    first_seen DateTime @default(now())
+    last_seen  DateTime @default(now()) @updatedAt
+
+    @@index([user_id])
+    @@index([fingerprint_hash])
+    @@index([last_seen])
+    @@map("user_devices")
+}

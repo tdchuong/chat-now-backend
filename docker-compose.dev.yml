@@ -1,20 +1,38 @@
-version: '3.8'
-
+# docker-compose.dev.yml
 services:
-  chat_now_mongodb:
-    container_name: chat_now_mongodb
-    image: mongo:latest
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${DATABASE_USERNAME}
-      MONGO_INITDB_ROOT_PASSWORD: ${DATABASE_PASSWORD}
-      MONGO_INITDB_DATABASE: ${DATABASE_NAME}
-    ports:
-      - "27019:27017"  # Ánh xạ cổng 27019 trên máy host tới cổng 27017 trong container
-    volumes:
-      - ./mongo-data:/data/db  # Mount data ra ngoài để tránh dữ liệu bị xóa khi remove container
-      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+  chat_now_postgres:
+    container_name: chat-postgres
+    image: postgres:16-alpine               # nhẹ hơn 30%
     restart: unless-stopped
+    environment:                            # ← Chỉ override nếu cần (tùy chọn)
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"       # có thể đổi port trong .env luôn
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
-networks:
-  default:
-    driver: bridge
+  chat_now_redis:
+    container_name: chat_now_redis
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --save 60 1
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  postgres_data:
+  redis_data:            
