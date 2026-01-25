@@ -1,11 +1,9 @@
 import { PhoneAlreadyExistsException } from '@/common/exceptions/user.exception';
-import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { RegisterCommand } from 'src/features/auth/register/command/register.command';
 import { PrismaService } from '@/database/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { RegisterResDto } from 'src/features/auth/register/dto/register-res.dto';
-@CommandHandler(RegisterCommand)
-export class RegisterHandler implements ICommandHandler<RegisterCommand> {
+export class RegisterUseCase {
   constructor(private prisma: PrismaService) {}
   async execute(command: RegisterCommand): Promise<RegisterResDto> {
     const existingUser = await this.prisma.user.findUnique({

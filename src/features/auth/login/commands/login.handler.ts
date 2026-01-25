@@ -4,7 +4,6 @@ import { hashStringSHA256 } from '@/common/utils';
 import { hashFingerprint } from '@/common/utils/fingerprint.util';
 import { PrismaService } from '@/database/prisma.service';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import * as bcrypt from 'bcrypt';
 import { LoginCommand } from 'src/features/auth/login/commands/login.command';
 import { v4 as uuidv4 } from 'uuid';
 import { AppConfigService } from '@/common/env/config.service';
@@ -49,13 +48,13 @@ export class LoginHandler implements ICommandHandler<LoginCommand> {
         displayName: user.display_name,
       },
       device: {
-        device_id: device.id,
+        deviceId: device.id,
         name: device.device_name,
-        is_trusted: command.rememberDevice ? true : device.is_trusted,
+        isTrusted: command.rememberDevice ? true : device.is_trusted,
       },
       token: {
-        access_token: accessToken,
-        refresh_token: refreshToken,
+        accessToken: accessToken,
+        refreshToken: refreshToken,
       },
     };
   }
@@ -95,5 +94,4 @@ export class LoginHandler implements ICommandHandler<LoginCommand> {
       },
     });
   }
-
 }

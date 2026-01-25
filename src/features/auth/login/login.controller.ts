@@ -21,10 +21,15 @@ export class LoginController {
     @CurrentUser() user: User,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const { refreshToken, ...rest } = await this.commandbus.execute(
-      LoginCommand.from(dto, user),
-    );
+    const {
+      token: { refreshToken, accessToken },
+      ...rest
+    } = await this.commandbus.execute(LoginCommand.from(dto, user));
+
     this.CookieService.setRefreshCookie(res, refreshToken);
-    return rest;
+    return {
+      ...rest,
+      accessToken,
+    };
   }
 }
