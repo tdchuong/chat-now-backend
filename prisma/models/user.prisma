@@ -19,61 +19,64 @@ enum Gender {
 }
 
 model User {
-    id            String   @id @default(uuid())
-    username      String   @unique @db.VarChar(50)
-    display_name  String   @db.VarChar(100)
-    password      String   @db.VarChar(255)
-    phone         String   @unique @db.VarChar(10)
-    date_of_birth DateTime
-    gender        Gender   @default(MALE)
+    id          String @id @default(uuid())
+    username    String @unique @db.VarChar(50)
+    displayName String @map("display_name") @db.VarChar(100)
+    password    String @db.VarChar(255)
+    phone       String @unique @db.VarChar(10)
 
-    role           UserRole   @default(USER)
-    status         UserStatus @default(OFFLINE)
-    last_active_at DateTime?  @updatedAt
-    socket_id      String?
+    dateOfBirth DateTime @map("date_of_birth")
+    gender      Gender   @default(MALE)
+
+    role         UserRole   @default(USER)
+    status       UserStatus @default(OFFLINE)
+    lastActiveAt DateTime?  @updatedAt @map("last_active_at")
+    socketId     String?    @map("socket_id")
 
     // Profile
-    avatar_url   String?   @default("https://avatar.iran.liara.run/public")
-    bio          String?   @db.Text
-    is_verified  Boolean   @default(false)
-    is_banned    Boolean   @default(false)
-    banned_until DateTime?
+    avatarUrl   String?   @default("https://avatar.iran.liara.run/public") @map("avatar_url")
+    bio         String?   @db.Text
+    isVerified  Boolean   @default(false) @map("is_verified")
+    isBanned    Boolean   @default(false) @map("is_banned")
+    bannedUntil DateTime? @map("banned_until")
 
     // Địa chỉ Việt Nam + vị trí realtime
-    address_street   String?  @db.VarChar(255)
-    address_ward     String?  @db.VarChar(100)
-    address_district String?  @db.VarChar(100)
-    address_city     String?  @db.VarChar(100)
-    address_country  String?  @default("Việt Nam")
-    latitude         Decimal? @db.Decimal(10, 8)
-    longitude        Decimal? @db.Decimal(11, 8)
+    addressStreet   String?  @map("address_street") @db.VarChar(255)
+    addressWard     String?  @map("address_ward") @db.VarChar(100)
+    addressDistrict String?  @map("address_district") @db.VarChar(100)
+    addressCity     String?  @map("address_city") @db.VarChar(100)
+    addressCountry  String?  @default("Việt Nam") @map("address_country")
+    latitude        Decimal? @db.Decimal(10, 8)
+    longitude       Decimal? @db.Decimal(11, 8)
 
-    // Privacy Quyền hiển thị
-    online_status_visibility String @default("everyone") // trạng thái trực tuyến:
-    last_seen_visibility     String @default("friends") // lần truy cập cuối:
-    profile_visibility       String @default("everyone") // hồ sơ cá nhân:
-    location_visibility      String @default("friends") //  vị trí:
+    // Privacy - quyền hiển thị
+    onlineStatusVisibility String @default("everyone") @map("online_status_visibility")
+    lastSeenVisibility     String @default("friends") @map("last_seen_visibility")
+    profileVisibility      String @default("everyone") @map("profile_visibility")
+    locationVisibility     String @default("friends") @map("location_visibility")
 
-    created_at DateTime  @default(now())
-    updated_at DateTime  @updatedAt
-    deleted_at DateTime?
+    createdAt DateTime  @default(now()) @map("created_at")
+    updatedAt DateTime  @updatedAt @map("updated_at")
+    deletedAt DateTime? @map("deleted_at")
 
     // Relations
-    sent_messages Message[]     @relation("MessageSender")
-    rooms         RoomMember[]
-    friends       UserFriend[]  @relation("UserFriends")
-    friended_by   UserFriend[]  @relation("FriendedBy")
-    blocked_users Block[]       @relation("Blocker")
-    blocked_by    Block[]       @relation("Blocked")
-    typing_in     Typing[]
-    read_receipts ReadReceipt[]
-    reactions     Reaction[]
-    devices       UserDevice[]
+    sentMessages Message[]    @relation("MessageSender")
+    rooms        RoomMember[]
+    friends      UserFriend[] @relation("UserFriends")
+    friendedBy   UserFriend[] @relation("FriendedBy")
+
+    blockedUsers Block[] @relation("Blocker")
+    blockedBy    Block[] @relation("Blocked")
+
+    typingIn     Typing[]
+    readReceipts ReadReceipt[]
+    reactions    Reaction[]
+    devices      UserDevice[]
 
     @@index([username])
     @@index([status])
-    @@index([last_active_at])
-    @@index([address_city])
+    @@index([lastActiveAt])
+    @@index([addressCity])
     @@index([latitude, longitude])
     @@map("users")
 }

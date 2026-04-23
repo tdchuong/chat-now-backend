@@ -5,15 +5,16 @@ enum RoomType {
 }
 
 model Room {
-    id         String   @id @default(uuid())
-    name       String?
-    type       RoomType @default(PRIVATE)
-    avatar_url String?
-    is_pinned  Boolean  @default(false)
+    id   String   @id @default(uuid())
+    name String?
+    type RoomType @default(PRIVATE)
 
-    created_at DateTime  @default(now())
-    updated_at DateTime  @updatedAt
-    deleted_at DateTime?
+    avatarUrl String? @map("avatar_url")
+    isPinned  Boolean @default(false) @map("is_pinned")
+
+    createdAt DateTime  @default(now()) @map("created_at")
+    updatedAt DateTime  @updatedAt @map("updated_at")
+    deletedAt DateTime? @map("deleted_at")
 
     members  RoomMember[]
     messages Message[]

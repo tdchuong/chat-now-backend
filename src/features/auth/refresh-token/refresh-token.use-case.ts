@@ -10,13 +10,9 @@ import { RTokenRedisSession } from '@/common/redis/auth/refresh-token-redis.sess
 import { TokenService } from '@/common/token/token.service';
 import { hashStringSHA256 } from '@/common/utils';
 import { PrismaService } from '@/database/prisma.service';
-import { RefreshTokenCommand } from '@/features/auth/refresh-token/commands/refresh-token.command';
-import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { RefreshTokenReqDto } from '@/features/auth/refresh-token/dto/refresh-token.req.dto';
 
-@CommandHandler(RefreshTokenCommand)
-export class RefreshTokenHandler
-  implements ICommandHandler<RefreshTokenCommand>
-{
+export class RefreshTokenUseCase {
   constructor(
     private readonly tokenService: TokenService,
     private readonly rTokenRedisSession: RTokenRedisSession,
@@ -24,10 +20,10 @@ export class RefreshTokenHandler
     private readonly prisma: PrismaService,
   ) {}
 
-  async execute(command: RefreshTokenCommand): Promise<any> {
+  async execute(dto: RefreshTokenReqDto) {
     const jwtConfig = this.configService.jwtConfig;
 
-    const payload = await this.verifyRefreshToken(command.refreshToken);
+    const payload = await this.verifyRefreshToken(dto.refreshToken);
     await this.verifyDevice(payload.deviceId, payload.userId);
 
     const now = Math.floor(Date.now() / 1000);
@@ -51,7 +47,7 @@ export class RefreshTokenHandler
     });
 
     // 6. Update device last seen
-    await this.updateDeviceActivity(payload.deviceId, command.ip);
+    await this.updateDeviceActivity(payload.deviceId, dto.ip);
 
     // 7. Get user info
     const user = await this.getUserInfo(payload.userId);
@@ -59,7 +55,7 @@ export class RefreshTokenHandler
     return {
       user: {
         id: user.id,
-        displayName: user.display_name,
+        displayName: user.displayName,
       },
       token: {
         accessToken,
@@ -86,14 +82,14 @@ export class RefreshTokenHandler
   private async verifyDevice(deviceId: string, userId: string) {
     const device = await this.prisma.userDevice.findUnique({
       where: { id: deviceId },
-      select: { user_id: true, last_active_at: true },
+      select: { userId: true, lastActiveAt: true },
     });
     if (!device) throw new DeviceNotFoundException();
 
-    if (device.user_id !== userId)
+    if (device.userId !== userId)
       throw new DeviceBelongsToAnotherUserException();
 
-    if (!device.last_active_at) throw new DeviceInactiveException();
+    if (!device.lastActiveAt) throw new DeviceInactiveException();
   }
   /**
    * Handle Redis script errors
@@ -106,9 +102,9 @@ export class RefreshTokenHandler
     await this.prisma.userDevice.update({
       where: { id: deviceId },
       data: {
-        last_active_at: new Date(),
-        last_seen: new Date(),
-        ...(ip && { ip_last: ip }),
+        lastActiveAt: new Date(),
+        lastSeen: new Date(),
+        ...(ip && { ipLast: ip }),
       },
     });
   }
@@ -121,7 +117,7 @@ export class RefreshTokenHandler
       where: { id: userId },
       select: {
         id: true,
-        display_name: true,
+        displayName: true,
       },
     });
 

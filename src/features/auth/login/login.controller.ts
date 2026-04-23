@@ -12,24 +12,7 @@ import { User } from 'generated/prisma/client';
 export class LoginController {
   constructor(
     private commandbus: CommandBus,
-    private readonly CookieService: CookieService,
-  ) {}
-  @Post('login')
-  @UseGuards(LocalAuthGuard)
-  async login(
-    @Body() dto: LoginReqDto,
-    @CurrentUser() user: User,
-    @Res({ passthrough: true }) res: Response,
-  ) {
-    const {
-      token: { refreshToken, accessToken },
-      ...rest
-    } = await this.commandbus.execute(LoginCommand.from(dto, user));
 
-    this.CookieService.setRefreshCookie(res, refreshToken);
-    return {
-      ...rest,
-      accessToken,
-    };
-  }
+  ) {}
+  
 }

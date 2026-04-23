@@ -1,0 +1,20 @@
+enum RoomRole {
+    ADMIN
+    MEMBER
+    KICKED
+}
+
+model RoomMember {
+    roomId String   @map("room_id")
+    userId String   @map("user_id")
+    role   RoomRole @default(MEMBER)
+
+    joinedAt  DateTime @default(now()) @map("joined_at")
+    updatedAt DateTime @updatedAt @map("update_at")
+
+    room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@unique([roomId, userId])
+    @@map("room_members")
+}

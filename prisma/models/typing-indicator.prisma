@@ -1,16 +1,16 @@
-// Đang gõ
 model Typing {
-    id        String  @id @default(uuid())
-    room_id   String
-    user_id   String
-    is_typing Boolean @default(true)
+    id String @id @default(uuid())
 
-    created_at DateTime @default(now())
-    updated_at DateTime @updatedAt
+    roomId   String  @map("room_id")
+    userId   String  @map("user_id")
+    isTyping Boolean @default(true) @map("is_typing")
 
-    room Room @relation(fields: [room_id], references: [id], onDelete: Cascade)
-    user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
 
-    @@index([room_id])
+    room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@index([roomId])
     @@map("typing_indicators")
 }

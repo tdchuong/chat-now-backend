@@ -1,7 +1,7 @@
 # docker-compose.dev.yml
 services:
-  chat_now_postgres:
-    container_name: chat-postgres
+  postgres:
+    container_name: postgres
     image: postgres:16-alpine               # nhẹ hơn 30%
     restart: unless-stopped
     environment:                            # ← Chỉ override nếu cần (tùy chọn)
@@ -18,8 +18,8 @@ services:
       timeout: 5s
       retries: 5
 
-  chat_now_redis:
-    container_name: chat_now_redis
+  redis:
+    container_name: redis
     image: redis:7-alpine
     restart: unless-stopped
     ports:

@@ -7,31 +7,37 @@ enum MessageType {
 }
 
 model Message {
-    id          String      @id @default(uuid())
-    room_id     String
-    sender_id   String
-    type        MessageType @default(TEXT)
-    content     String?     @db.Text
-    file_url    String? // nếu là ảnh, video, file
-    file_size   Int?
-    file_name   String?
-    duration    Int? // giây, cho voice/video
-    reply_to_id String?
+    id       String      @id @default(uuid())
+    roomId   String      @map("room_id")
+    senderId String      @map("sender_id")
+    type     MessageType @default(TEXT)
+    content  String?     @db.Text
 
-    is_deleted Boolean   @default(false)
-    edited_at  DateTime?
+    fileUrl  String? @map("file_url") // ảnh, video, file
+    fileSize Int?    @map("file_size")
+    fileName String? @map("file_name")
+    duration Int? // giây, cho voice/video
 
-    created_at DateTime @default(now())
-    updated_at DateTime @updatedAt
+    replyToId String? @map("reply_to_id")
 
-    room      Room          @relation(fields: [room_id], references: [id], onDelete: Cascade)
-    sender    User          @relation("MessageSender", fields: [sender_id], references: [id])
-    reply_to  Message?      @relation("ReplyTo", fields: [reply_to_id], references: [id])
-    replies   Message[]     @relation("ReplyTo")
-    read_by   ReadReceipt[]
+    isDeleted Boolean   @default(false) @map("is_deleted")
+    editedAt  DateTime? @map("edited_at")
+
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
+
+    // relations
+    room   Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+    sender User @relation("MessageSender", fields: [senderId], references: [id])
+
+    replyTo Message?  @relation("ReplyTo", fields: [replyToId], references: [id])
+    replies Message[] @relation("ReplyTo")
+
+    readBy    ReadReceipt[]
     reactions Reaction[]
 
-    @@index([room_id, created_at])
-    @@index([sender_id])
+    // indexes
+    @@index([roomId, createdAt])
+    @@index([senderId])
     @@map("messages")
 }

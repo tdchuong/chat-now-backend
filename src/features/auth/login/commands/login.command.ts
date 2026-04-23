@@ -1,5 +1,4 @@
 import { LoginReqDto } from '@/features/auth/login/dto/login.req.dto';
-import { Command } from '@nestjs/cqrs';
 import { User } from 'generated/prisma/browser';
 
 export class LoginCommand extends Command<any> {
@@ -20,14 +19,5 @@ export class LoginCommand extends Command<any> {
   ) {
     super();
   }
-  static from(dto: LoginReqDto, user: User) {
-    return new LoginCommand(
-      user,
-      dto.fingerprint,
-      dto.deviceInfo,
-      dto.ip,
-      dto.userAgent,
-      dto.rememberDevice,
-    );
-  }
+
 }
