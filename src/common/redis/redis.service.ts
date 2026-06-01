@@ -25,10 +25,51 @@ import {
 } from '@nestjs/common';
 import Redis, { Redis as RedisClient, RedisOptions } from 'ioredis';
 
+// Redis là gì và tại sao cần wrapper?
+// Redis là một in-memory database — lưu data trong RAM, cực nhanh. Dùng để lưu session, cache, token... Nhưng khi dùng trong NestJS, không thể gọi thẳng ioredis ở khắp nơi vì:
+// Không có retry khi mất kết nối
+// Không có logging
+// Không quản lý lifecycle (start/stop)
+// Code lặp lại ở mọi nơi
+// Nên cần một service bọc lại — đó là RedisService.
+// App khởi động
+//      │
+//      ▼
+// onModuleInit() ──► initialize()
+//      │
+//      ├── buildRedisConfig()     # đọc host, port, password từ env
+//      │        └── retryStrategy # nếu mất kết nối thì thử lại thế nào
+//      │
+//      ├── new Redis(config)      # tạo kết nối đến Redis server
+//      │
+//      └── setupEventListeners()  # lắng nghe các sự kiện
+//               ├── 'connect'     → đang kết nối
+//               ├── 'ready'       → kết nối xong, sẵn sàng nhận lệnh
+//               ├── 'error'       → có lỗi
+//               ├── 'close'       → kết nối đóng
+//               ├── 'reconnecting'→ đang thử kết nối lại
+//               └── 'end'         → kết nối kết thúc hẳn
+// redisService.get("user:123")
+//      │
+//      ▼
+// executeWithErrorHandling()
+//      │
+//      ├── ensureConnection()  # client còn sống không?
+//      │        └── không → throw ngay
+//      │
+//      ├── client.get("user:123")  # gọi Redis thật
+//      │
+//      ├── thành công → trả về value
+//      └── lỗi → log + throw Error mới (kèm message rõ ràng)
+// pipeline Gửi nhiều lệnh một lúc, giảm round-trip
+// transaction (MULTI/EXEC)Cần atomic — hoặc tất cả thành công hoặc không cái nào
+// Lua scriptLogic phức tạp cần chạy atomic phía Redis (ví dụ: check-then-set)
+// sorted set (zAdd/zRange)Leaderboard, rate limiting, job queue
+// scanTìm nhiều key theo pattern, thay cho keys vốn block Redis
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(RedisService.name);
-  private client: RedisClient;
+  private client!: RedisClient;
   private connectionState = {
     isConnected: false,
     startTime: 0,
@@ -55,13 +96,13 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     this.client = new Redis(config);
     this.setupEventListeners();
 
-    try {
-      this.connectionState.startTime = Date.now();
-      this.logger.log('✅ Redis connected successfully');
-    } catch (error) {
-      this.handleConnectionError(error);
-      throw error;
-    }
+    await new Promise<void>((resolve, reject) => {
+      this.client.once('ready', () => {
+        this.connectionState.startTime = Date.now();
+        resolve();
+      });
+      this.client.once('error', reject);
+    });
   }
 
   private buildRedisConfig(): RedisOptions {
@@ -116,7 +157,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     this.client.on('ready', () => this.handleReady());
     this.client.on('error', (error) => this.handleError(error));
     this.client.on('close', () => this.handleClose());
-    this.client.on('reconnecting', (ms) => this.handleReconnecting(ms));
+    this.client.on('reconnecting', (ms: any) => this.handleReconnecting(ms));
     this.client.on('end', () => this.handleEnd());
   }
 
@@ -158,9 +199,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   // ==================== DISCONNECT ====================
 
   private async disconnect(): Promise<void> {
-    if (!this.client || !this.connectionState.isConnected) {
-      return;
-    }
+    if (!this.client || this.client.status === 'end') return;
     try {
       await this.client.quit();
       this.logger.log('Redis disconnected gracefully');
@@ -430,15 +469,15 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     } catch (error) {
       const err = error as Error;
       this.logger.error(`${operation} failed: ${err.message}`, err.stack);
-      throw new Error(`Redis ${operation} error: ${err.message}`);
+      throw new Error(`Redis ${operation} error: ${err.message}`, {
+        cause: err,
+      });
     }
   }
 
   private ensureConnection(): void {
-    if (!this.isConnected()) {
-      throw new Error(
-        `Redis not connected. Status: ${this.client?.status || 'unknown'}`,
-      );
+    if (this.client?.status === 'end') {
+      throw new Error('Redis connection has been terminated');
     }
   }
 

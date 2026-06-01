@@ -8,9 +8,9 @@ import {
 export class CustomValidationPipe extends ValidationPipe {
   constructor() {
     super({
-      transform: true,// Tự động transform plain object sang DTO class
-      whitelist: true,    // Loại bỏ các field không có trong DTO
-      forbidNonWhitelisted: true,      // Throw error nếu có field không hợp lệ
+      transform: true, // Tự động transform plain object sang DTO class
+      whitelist: true, // Loại bỏ các field không có trong DTO
+      forbidNonWhitelisted: true, // Throw error nếu có field không hợp lệ
       transformOptions: {
         enableImplicitConversion: true, // Tự động chuyển đổi kiểu dữ liệu cơ bản
       },
@@ -20,7 +20,7 @@ export class CustomValidationPipe extends ValidationPipe {
           errors: Object.values(error.constraints || {}),
         }));
         return new BadRequestException({
-          statusCode: 4222,
+          errorCode: 'E000',
           message: 'Validation failed',
           errors: formattedErrors,
         });

@@ -5,7 +5,8 @@ enum RoomType {
 }
 
 model Room {
-    id   String   @id @default(uuid())
+    id String @id
+
     name String?
     type RoomType @default(PRIVATE)
 

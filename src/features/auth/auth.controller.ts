@@ -1,22 +1,29 @@
+import { Cookie } from '@/common/decorators/cookie.decorator';
+import { CurrentUser } from '@/common/decorators/current-user.decorator';
+import { GetIp } from '@/common/decorators/get-ip.decorator';
+import { AuthRefreshGuard } from '@/features/auth/guards/jwt-auth.guard';
+import { TokenCookieService } from '@/features/auth/services/token-cookie.service';
+import { GetMeUseCase } from '@/features/auth/use-cases/get-me/get-me.use-case';
+import { LoginReqDto } from '@/features/auth/use-cases/login/dto/login.req.dto';
+import { LoginUseCase } from '@/features/auth/use-cases/login/login.use-case';
+import { LogoutUseCase } from '@/features/auth/use-cases/logout/logout-use-case';
+import { RegisterReqDto } from '@/features/auth/use-cases/register/dto/register-req.dto';
+import { RegisterResDto } from '@/features/auth/use-cases/register/dto/register-res.dto';
+import { RegisterUseCase } from '@/features/auth/use-cases/register/register.use-case';
 import {
   Body,
   Controller,
+  Get,
+  Headers,
   HttpCode,
   HttpStatus,
   Post,
   Put,
+  Req,
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { RegisterReqDto } from '@/features/auth/register/dto/register-req.dto';
-import { RegisterResDto } from '@/features/auth/register/dto/register-res.dto';
-import { RegisterUseCase } from '@/features/auth/register/register.use-case';
-import { CookieService } from '@/common/cookies/cookie.service';
-import { LocalAuthGuard } from '@/common/guards/local-auth.guard';
-import { LoginReqDto } from '@/features/auth/login/dto/login.req.dto';
-import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { User } from 'generated/prisma/client';
-import { LoginUseCase } from '@/features/auth/login/login.use-case';
+
 import { Response } from 'express';
 
 @Controller('auth')
@@ -24,7 +31,10 @@ export class AuthController {
   constructor(
     private readonly registerUseCase: RegisterUseCase,
     private readonly loginUseCase: LoginUseCase,
-    private readonly CookieService: CookieService,
+    private readonly getMeUseCase: GetMeUseCase,
+    private readonly logoutUseCase: LogoutUseCase,
+
+    private readonly cookieService: TokenCookieService,
   ) {}
 
   @Put('register')
@@ -33,21 +43,36 @@ export class AuthController {
   }
 
   @Post('login')
-  @UseGuards(LocalAuthGuard)
+  @HttpCode(HttpStatus.OK)
   async login(
     @Body() dto: LoginReqDto,
-    @CurrentUser() user: User,
     @Res({ passthrough: true }) res: Response,
+    @GetIp() ip: string,
+    @Headers('user-agent') userAgent: string,
   ) {
-    const {
-      token: { refreshToken, accessToken },
-      ...rest
-    } = await this.loginUseCase.execute(dto, user);
+    const result = await this.loginUseCase.execute(dto, { ip, userAgent });
+    this.cookieService.setAccessToken(res, result.token.accessToken);
+    this.cookieService.setRefreshToken(res, result.token.refreshToken);
+    return result.user;
+  }
 
-    this.CookieService.setRefreshCookie(res, refreshToken);
-    return {
-      ...rest,
-      accessToken,
-    };
+  @UseGuards(AuthRefreshGuard)
+  @Get('me')
+  async me(@CurrentUser('sub') userId: string) {
+    return this.getMeUseCase.execute(userId);
+  }
+
+  @Post('logout')
+  async logout(
+    @Cookie('refresh_token')
+    refreshToken: string | undefined,
+    @Res({ passthrough: true })
+    res: Response,
+  ) {
+    if (refreshToken) {
+      await this.logoutUseCase.execute({ refreshToken });
+    }
+    this.cookieService.clearTokens(res);
+    return { message: 'Logged out successfully' };
   }
 }

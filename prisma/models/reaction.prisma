@@ -7,6 +7,8 @@ enum ReactionType {
 }
 
 model Reaction {
+    id String @id
+
     messageId String       @map("message_id")
     userId    String       @map("user_id")
     type      ReactionType

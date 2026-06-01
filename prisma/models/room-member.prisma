@@ -5,6 +5,8 @@ enum RoomRole {
 }
 
 model RoomMember {
+    id String @id
+
     roomId String   @map("room_id")
     userId String   @map("user_id")
     role   RoomRole @default(MEMBER)

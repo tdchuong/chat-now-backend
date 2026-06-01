@@ -1,38 +1,30 @@
 model UserDevice {
-    id String @id @default(uuid())
+    id String @id
 
-    // Khóa nhận diện thiết bị vĩnh viễn (SHA256 của fingerprint)
     fingerprintHash String @unique @map("fingerprint_hash") @db.VarChar(64)
-    // ví dụ: "a1b2c3d4e5f6..."
 
-    userId String? @map("user_id") // null = chưa login lần nào (guest)
+    userId String? @map("user_id") 
     user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
 
-    // Thông tin thiết bị (để hiển thị danh sách thiết bị)
     deviceName     String? @map("device_name") // "iPhone 14 Pro", "MacBook Pro"
     platform       String? // "iPhone", "Android", "Windows"
     os             String? // "iOS", "Android", "Windows"
     osVersion      String? @map("os_version") // "17.5", "14"
     browser        String? // "Chrome", "Safari"
     browserVersion String? @map("browser_version") // "128.0"
-    appVersion     String? @map("app_version") // mobile app: "2.1.5"
 
-    // IP
-    ipFirst   String? @map("ip_first") // IP lần đầu login
     ipLast    String  @map("ip_last") // IP lần cuối
     userAgent String? @map("user_agent")
 
     // Trạng thái bảo mật
     isTrusted    Boolean  @default(false) @map("is_trusted")
     isBlocked    Boolean  @default(false) @map("is_blocked")
-    lastActiveAt DateTime @map("last_active_at") // "Hoạt động 5 phút trước"
+    lastActiveAt DateTime @default(now()) @map("last_active_at") // "Hoạt động 5 phút trước"
 
-    // Thời gian
-    firstSeen DateTime @default(now()) @map("first_seen")
-    lastSeen  DateTime @default(now()) @updatedAt @map("last_seen")
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
 
     @@index([userId])
     @@index([fingerprintHash])
-    @@index([lastSeen])
     @@map("user_devices")
 }

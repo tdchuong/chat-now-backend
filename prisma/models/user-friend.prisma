@@ -5,6 +5,8 @@ enum UserFriendStatus {
 }
 
 model UserFriend {
+  id String @id
+
   userId   String           @map("user_id")
   friendId String           @map("friend_id")
   status   UserFriendStatus @default(PENDING)

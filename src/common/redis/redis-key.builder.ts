@@ -42,6 +42,4 @@ export class RedisKeyBuilder {
   static custom(prefix: string, ...parts: (string | number)[]): string {
     return [prefix, ...parts].join(':');
   }
-
-
 }

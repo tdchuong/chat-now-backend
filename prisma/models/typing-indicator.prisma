@@ -1,5 +1,5 @@
 model Typing {
-    id String @id @default(uuid())
+    id String @id
 
     roomId   String  @map("room_id")
     userId   String  @map("user_id")

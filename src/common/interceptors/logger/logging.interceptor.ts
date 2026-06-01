@@ -29,6 +29,7 @@ export class LoggingInterceptor implements NestInterceptor {
           this.logger.info(`${method} ${url} ${statusCode} ${duration}ms`);
         },
         error: (err) => {
+
           const duration = Date.now() - now;
           this.logger.error({
             method,

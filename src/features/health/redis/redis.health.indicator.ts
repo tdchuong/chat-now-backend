@@ -16,6 +16,5 @@ export class RedisHealthIndicator {
    */
   async isHealthy(key: string) {
     // const health = await this.redisService.healthCheck(key);
-    
   }
 }

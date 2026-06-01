@@ -19,7 +19,8 @@ enum Gender {
 }
 
 model User {
-    id          String @id @default(uuid())
+    id          String @id
+    
     username    String @unique @db.VarChar(50)
     displayName String @map("display_name") @db.VarChar(100)
     password    String @db.VarChar(255)
@@ -74,6 +75,8 @@ model User {
     devices      UserDevice[]
 
     @@index([username])
+    @@index([phone])
+    
     @@index([status])
     @@index([lastActiveAt])
     @@index([addressCity])

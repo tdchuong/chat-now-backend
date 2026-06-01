@@ -7,18 +7,14 @@ enum MessageType {
 }
 
 model Message {
-    id       String      @id @default(uuid())
-    roomId   String      @map("room_id")
-    senderId String      @map("sender_id")
-    type     MessageType @default(TEXT)
-    content  String?     @db.Text
+    id String @id
 
-    fileUrl  String? @map("file_url") // ảnh, video, file
-    fileSize Int?    @map("file_size")
-    fileName String? @map("file_name")
-    duration Int? // giây, cho voice/video
+    roomId   String @map("room_id")
+    senderId String @map("sender_id")
 
-    replyToId String? @map("reply_to_id")
+    type      MessageType @default(TEXT)
+    content   String?     @db.Text
+    replyToId String?     @map("reply_to_id")
 
     isDeleted Boolean   @default(false) @map("is_deleted")
     editedAt  DateTime? @map("edited_at")
@@ -33,8 +29,9 @@ model Message {
     replyTo Message?  @relation("ReplyTo", fields: [replyToId], references: [id])
     replies Message[] @relation("ReplyTo")
 
-    readBy    ReadReceipt[]
-    reactions Reaction[]
+    readBy      ReadReceipt[]
+    reactions   Reaction[]
+    attachments MessageAttachment[]
 
     // indexes
     @@index([roomId, createdAt])

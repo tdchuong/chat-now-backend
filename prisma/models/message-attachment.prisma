@@ -1,0 +1,30 @@
+enum AttachmentType {
+    IMAGE
+    VIDEO
+    FILE
+    VOICE
+}
+
+model MessageAttachment {
+    id String @id
+
+    messageId String @map("message_id")
+
+    type AttachmentType
+
+    fileUrl String @map("file_url")
+
+    fileName String? @map("file_name")
+
+    fileSize Int? @map("file_size")
+
+    duration Int?
+
+    createdAt DateTime @default(now())
+
+    // relations
+    message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+    @@index([messageId])
+    @@map("message_attachments")
+}

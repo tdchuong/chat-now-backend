@@ -1,4 +1,7 @@
 model Block {
+
+    id String @id
+
     blockerId String @map("blocker_id")
     blockedId String @map("blocked_id")
 
